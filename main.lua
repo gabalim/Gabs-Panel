@@ -14,7 +14,7 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local StickyAim_Enabled = false
 local WallCheck_Enabled = false
-local IgnoreDead_Enabled = true
+local IgnoreDead_Enabled = false
 local TeamCheck_Enabled = false
 local VisualESP_Enabled = false
 
@@ -445,4 +445,128 @@ local function getClosestTarget()
 				local targetVector = Vector2.new(screenPos.X, screenPos.Y)
 				local dist = (targetVector - centerPos).Magnitude
 
-				if dist <= shortest
+				if dist <= shortestDistance then
+					shortestDistance = dist
+					closestPlayer = player
+				end
+			end
+		end
+	end
+	return closestPlayer
+end
+
+--------------------------------------------------------------------------------
+-- REGISTER CONTROLS (BALANCED ACROSS 2 COLUMNS)
+--------------------------------------------------------------------------------
+
+-- Left Column (Combat Settings)
+createToggle("Sticky Aim", false, leftColumn, function(state)
+	StickyAim_Enabled = state
+	FOVFrame.Visible = state
+	if not state then LockTarget = nil end
+end)
+
+createToggle("Wall Check", false, leftColumn, function(state)
+	WallCheck_Enabled = state
+	if state and LockTarget and LockTarget.Character and LockTarget.Character:FindFirstChild("Head") then
+		if not isTargetVisible(LockTarget.Character.Head) then
+			LockTarget = nil
+		end
+	end
+end)
+
+createSlider("FOV Radius", 40, 300, FOV_Radius, leftColumn, function(val)
+	FOV_Radius = val
+end)
+
+createSlider("Aim Smoothness", 1, 100, math.floor(Aim_Smoothness * 100), leftColumn, function(val, rel)
+	Aim_Smoothness = math.clamp(rel, 0.05, 1.0)
+end)
+
+-- Right Column (Targeting & ESP)
+createToggle("Ignore Dead", true, rightColumn, function(state)
+	IgnoreDead_Enabled = state
+end)
+
+createToggle("Team Check", false, rightColumn, function(state)
+	TeamCheck_Enabled = state
+end)
+
+createToggle("Visual ESP", false, rightColumn, function(state)
+	VisualESP_Enabled = state
+end)
+
+--------------------------------------------------------------------------------
+-- MAIN LOOP
+--------------------------------------------------------------------------------
+
+RunService.RenderStepped:Connect(function(deltaTime)
+	local centerScreen = getCenterScreenPos()
+	FOVFrame.Size = UDim2.new(0, FOV_Radius * 2, 0, FOV_Radius * 2)
+	FOVFrame.Position = UDim2.new(0, centerScreen.X, 0, centerScreen.Y)
+
+	if StickyAim_Enabled then
+		if not LockTarget or not LockTarget.Character or not LockTarget.Character:FindFirstChild("Head") 
+		   or (IgnoreDead_Enabled and not isPlayerAlive(LockTarget)) 
+		   or (WallCheck_Enabled and not isTargetVisible(LockTarget.Character.Head)) then
+			LockTarget = getClosestTarget()
+		end
+
+		if LockTarget and LockTarget.Character and LockTarget.Character:FindFirstChild("Head") then
+			local headPos = LockTarget.Character.Head.Position
+			local screenPos, onScreen = Camera:WorldToViewportPoint(headPos)
+
+			if onScreen and screenPos.Z > 0 then
+				local distFromCenter = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)).Magnitude
+
+				if distFromCenter <= FOV_Radius then
+					local currentCFrame = Camera.CFrame
+					local targetCFrame = CFrame.lookAt(currentCFrame.Position, headPos)
+					local lerpAlpha = math.clamp(deltaTime * (Aim_Smoothness * 20), 0, 1)
+					
+					Camera.CFrame = currentCFrame:Lerp(targetCFrame, lerpAlpha)
+					FOVStroke.Color = Color3.fromRGB(0, 255, 150)
+				else
+					LockTarget = nil
+					FOVStroke.Color = UI_Accent
+				end
+			else
+				LockTarget = nil
+				FOVStroke.Color = UI_Accent
+			end
+		else
+			FOVStroke.Color = UI_Accent
+		end
+	end
+
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player ~= LocalPlayer then
+			if VisualESP_Enabled and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+				local isSameTeam = TeamCheck_Enabled and player.Team and player.Team == LocalPlayer.Team
+				local alive = isPlayerAlive(player)
+
+				if not isSameTeam and (not IgnoreDead_Enabled or alive) then
+					local highlight = player.Character:FindFirstChild("ESPHighlight")
+					if not highlight then
+						highlight = Instance.new("Highlight")
+						highlight.Name = "ESPHighlight"
+						highlight.FillTransparency = 0.5
+						highlight.OutlineTransparency = 0
+						highlight.Parent = player.Character
+					end
+
+					highlight.Enabled = true
+					highlight.FillColor = alive and Color3.fromRGB(0, 225, 255) or Color3.fromRGB(100, 115, 130)
+				else
+					if player.Character:FindFirstChild("ESPHighlight") then
+						player.Character.ESPHighlight.Enabled = false
+					end
+				end
+			else
+				if player.Character and player.Character:FindFirstChild("ESPHighlight") then
+					player.Character.ESPHighlight.Enabled = false
+				end
+			end
+		end
+	end
+end)
