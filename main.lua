@@ -14,17 +14,20 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local StickyAim_Enabled = false
 local WallCheck_Enabled = false
-local IgnoreDead_Enabled = false
+local IgnoreDead_Enabled = true
 local TeamCheck_Enabled = false
 local VisualESP_Enabled = false
+local BehindWarning_Enabled = true
 
 local FOV_Radius = 82
 local Aim_Smoothness = 0.25
+local Behind_Distance = 30
 local LockTarget = nil
 
 -- Theme Palette (Cyberpunk Landscape)
 local UI_Accent = Color3.fromRGB(0, 230, 255)
 local UI_AccentGlow = Color3.fromRGB(0, 150, 255)
+local UI_WarningRed = Color3.fromRGB(255, 50, 80)
 local UI_BgColor = Color3.fromRGB(11, 14, 22)
 local UI_HeaderBg = Color3.fromRGB(15, 20, 32)
 local UI_CardColor = Color3.fromRGB(18, 24, 38)
@@ -34,7 +37,7 @@ local UI_TextPrimary = Color3.fromRGB(240, 246, 255)
 local UI_TextSecondary = Color3.fromRGB(120, 140, 170)
 
 --------------------------------------------------------------------------------
--- GUI SETUP (LANDSCAPE DESIGN)
+-- GUI SETUP
 --------------------------------------------------------------------------------
 
 local screenGui = Instance.new("ScreenGui")
@@ -42,6 +45,35 @@ screenGui.Name = "GabsPanel_Landscape"
 screenGui.ResetOnSpawn = false
 screenGui.DisplayOrder = 999
 screenGui.Parent = PlayerGui
+
+-- Behind Warning Popup Box
+local warningFrame = Instance.new("Frame")
+warningFrame.Name = "WarningFrame"
+warningFrame.Size = UDim2.new(0, 280, 0, 45)
+warningFrame.Position = UDim2.new(0.5, -140, 0.12, 0)
+warningFrame.BackgroundColor3 = Color3.fromRGB(25, 10, 15)
+warningFrame.BorderSizePixel = 0
+warningFrame.Visible = false
+warningFrame.Parent = screenGui
+
+local warningCorner = Instance.new("UICorner")
+warningCorner.CornerRadius = UDim.new(0, 10)
+warningCorner.Parent = warningFrame
+
+local warningStroke = Instance.new("UIStroke")
+warningStroke.Color = UI_WarningRed
+warningStroke.Thickness = 2
+warningStroke.Parent = warningFrame
+
+local warningText = Instance.new("TextLabel")
+warningText.Size = UDim2.new(1, -20, 1, 0)
+warningText.Position = UDim2.new(0, 10, 0, 0)
+warningText.BackgroundTransparency = 1
+warningText.Text = "⚠️ ENEMY BEHIND YOU!"
+warningText.TextColor3 = UI_WarningRed
+warningText.Font = Enum.Font.GothamBold
+warningText.TextSize = 12
+warningText.Parent = warningFrame
 
 -- Floating Mobile Button
 local toggleBtn = Instance.new("TextButton")
@@ -69,8 +101,8 @@ toggleStroke.Parent = toggleBtn
 -- Main Frame (Wide Landscape Aspect)
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 440, 0, 260)
-mainFrame.Position = UDim2.new(0.5, -220, 0.5, -130)
+mainFrame.Size = UDim2.new(0, 440, 0, 290)
+mainFrame.Position = UDim2.new(0.5, -220, 0.5, -145)
 mainFrame.BackgroundColor3 = UI_BgColor
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
@@ -99,7 +131,6 @@ local headerCorner = Instance.new("UICorner")
 headerCorner.CornerRadius = UDim.new(0, 14)
 headerCorner.Parent = header
 
--- Header Flat Bottom Fix
 local headerFix = Instance.new("Frame")
 headerFix.Size = UDim2.new(1, 0, 0, 10)
 headerFix.Position = UDim2.new(0, 0, 1, -10)
@@ -174,7 +205,7 @@ toggleBtn.MouseButton1Click:Connect(function()
 end)
 
 --------------------------------------------------------------------------------
--- UI COMPONENTS (LANDSCAPE DESIGN)
+-- UI COMPONENTS
 --------------------------------------------------------------------------------
 
 local function createToggle(text, defaultState, parentColumn, callback)
@@ -412,6 +443,45 @@ local function isTargetVisible(targetHead)
 	return true
 end
 
+local function checkEnemiesBehind()
+	if not BehindWarning_Enabled or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+		return nil, 0
+	end
+
+	local myHRP = LocalPlayer.Character.HumanoidRootPart
+	local myLookVector = myHRP.CFrame.LookVector
+
+	local closestEnemy = nil
+	local closestDist = Behind_Distance
+
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player ~= LocalPlayer and isPlayerAlive(player) then
+			if TeamCheck_Enabled and player.Team and player.Team == LocalPlayer.Team then
+				continue
+			end
+
+			local enemyHRP = player.Character:FindFirstChild("HumanoidRootPart")
+			if enemyHRP then
+				local dirToEnemy = (enemyHRP.Position - myHRP.Position)
+				local dist = dirToEnemy.Magnitude
+
+				if dist <= Behind_Distance then
+					local dotProduct = myLookVector:Dot(dirToEnemy.Unit)
+					-- Dot product < -0.5 means the enemy is behind you in a 120-degree cone
+					if dotProduct < -0.3 then
+						if dist < closestDist then
+							closestDist = dist
+							closestEnemy = player
+						end
+					end
+				end
+			end
+		end
+	end
+
+	return closestEnemy, math.floor(closestDist)
+end
+
 local function getCenterScreenPos()
 	local viewportSize = Camera.ViewportSize
 	local inset = GuiService:GetGuiInset()
@@ -456,7 +526,7 @@ local function getClosestTarget()
 end
 
 --------------------------------------------------------------------------------
--- REGISTER CONTROLS (BALANCED ACROSS 2 COLUMNS)
+-- REGISTER CONTROLS
 --------------------------------------------------------------------------------
 
 -- Left Column (Combat Settings)
@@ -483,7 +553,16 @@ createSlider("Aim Smoothness", 1, 100, math.floor(Aim_Smoothness * 100), leftCol
 	Aim_Smoothness = math.clamp(rel, 0.05, 1.0)
 end)
 
--- Right Column (Targeting & ESP)
+-- Right Column (Alerts & Visuals)
+createToggle("Behind Warning", true, rightColumn, function(state)
+	BehindWarning_Enabled = state
+	if not state then warningFrame.Visible = false end
+end)
+
+createSlider("Warning Range", 10, 60, Behind_Distance, rightColumn, function(val)
+	Behind_Distance = val
+end)
+
 createToggle("Ignore Dead", true, rightColumn, function(state)
 	IgnoreDead_Enabled = state
 end)
@@ -505,6 +584,20 @@ RunService.RenderStepped:Connect(function(deltaTime)
 	FOVFrame.Size = UDim2.new(0, FOV_Radius * 2, 0, FOV_Radius * 2)
 	FOVFrame.Position = UDim2.new(0, centerScreen.X, 0, centerScreen.Y)
 
+	-- Behind Warning Check
+	if BehindWarning_Enabled then
+		local enemyBehind, distance = checkEnemiesBehind()
+		if enemyBehind then
+			warningText.Text = "⚠️ " .. enemyBehind.DisplayName:upper() .. " IS BEHIND YOU! (" .. distance .. "m)"
+			warningFrame.Visible = true
+		else
+			warningFrame.Visible = false
+		end
+	else
+		warningFrame.Visible = false
+	end
+
+	-- Sticky Aim Execution
 	if StickyAim_Enabled then
 		if not LockTarget or not LockTarget.Character or not LockTarget.Character:FindFirstChild("Head") 
 		   or (IgnoreDead_Enabled and not isPlayerAlive(LockTarget)) 
@@ -539,6 +632,7 @@ RunService.RenderStepped:Connect(function(deltaTime)
 		end
 	end
 
+	-- ESP Highlights
 	for _, player in ipairs(Players:GetPlayers()) do
 		if player ~= LocalPlayer then
 			if VisualESP_Enabled and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
