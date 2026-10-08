@@ -22,29 +22,31 @@ local FOV_Radius = 82
 local Aim_Smoothness = 0.25
 local LockTarget = nil
 
--- Cyberpunk Color Palette
-local UI_Accent = Color3.fromRGB(0, 225, 255)
-local UI_AccentGlow = Color3.fromRGB(0, 140, 255)
-local UI_BgColor = Color3.fromRGB(10, 13, 20)
-local UI_CardColor = Color3.fromRGB(16, 22, 34)
-local UI_ToggleOff = Color3.fromRGB(28, 36, 52)
-local UI_TextPrimary = Color3.fromRGB(240, 245, 255)
-local UI_TextSecondary = Color3.fromRGB(110, 130, 160)
+-- Theme Palette (Cyberpunk Landscape)
+local UI_Accent = Color3.fromRGB(0, 230, 255)
+local UI_AccentGlow = Color3.fromRGB(0, 150, 255)
+local UI_BgColor = Color3.fromRGB(11, 14, 22)
+local UI_HeaderBg = Color3.fromRGB(15, 20, 32)
+local UI_CardColor = Color3.fromRGB(18, 24, 38)
+local UI_CardBorder = Color3.fromRGB(30, 42, 65)
+local UI_ToggleOff = Color3.fromRGB(32, 42, 60)
+local UI_TextPrimary = Color3.fromRGB(240, 246, 255)
+local UI_TextSecondary = Color3.fromRGB(120, 140, 170)
 
 --------------------------------------------------------------------------------
--- GUI SETUP
+-- GUI SETUP (LANDSCAPE DESIGN)
 --------------------------------------------------------------------------------
 
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "GabsPanel_V2"
+screenGui.Name = "GabsPanel_Landscape"
 screenGui.ResetOnSpawn = false
 screenGui.DisplayOrder = 999
 screenGui.Parent = PlayerGui
 
--- Sleek Floating Logo Button
+-- Floating Mobile Button
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Name = "MobileToggleBtn"
-toggleBtn.Size = UDim2.new(0, 50, 0, 50)
+toggleBtn.Size = UDim2.new(0, 52, 0, 52)
 toggleBtn.Position = UDim2.new(0.02, 0, 0.2, 0)
 toggleBtn.BackgroundColor3 = UI_BgColor
 toggleBtn.Text = "GAB"
@@ -62,14 +64,13 @@ toggleCorner.Parent = toggleBtn
 local toggleStroke = Instance.new("UIStroke")
 toggleStroke.Color = UI_Accent
 toggleStroke.Thickness = 2
-toggleStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 toggleStroke.Parent = toggleBtn
 
--- Main Cyberpunk Frame
+-- Main Frame (Wide Landscape Aspect)
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 260, 0, 430)
-mainFrame.Position = UDim2.new(0.5, -130, 0.3, -215)
+mainFrame.Size = UDim2.new(0, 440, 0, 260)
+mainFrame.Position = UDim2.new(0.5, -220, 0.5, -130)
 mainFrame.BackgroundColor3 = UI_BgColor
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
@@ -78,7 +79,7 @@ mainFrame.Visible = true
 mainFrame.Parent = screenGui
 
 local mainCorner = Instance.new("UICorner")
-mainCorner.CornerRadius = UDim.new(0, 16)
+mainCorner.CornerRadius = UDim.new(0, 14)
 mainCorner.Parent = mainFrame
 
 local mainStroke = Instance.new("UIStroke")
@@ -87,87 +88,124 @@ mainStroke.Thickness = 1.5
 mainStroke.Transparency = 0.2
 mainStroke.Parent = mainFrame
 
--- Header
+-- Header Bar
 local header = Instance.new("Frame")
-header.Size = UDim2.new(1, 0, 0, 48)
-header.BackgroundTransparency = 1
+header.Size = UDim2.new(1, 0, 0, 42)
+header.BackgroundColor3 = UI_HeaderBg
+header.BorderSizePixel = 0
 header.Parent = mainFrame
 
+local headerCorner = Instance.new("UICorner")
+headerCorner.CornerRadius = UDim.new(0, 14)
+headerCorner.Parent = header
+
+-- Header Flat Bottom Fix
+local headerFix = Instance.new("Frame")
+headerFix.Size = UDim2.new(1, 0, 0, 10)
+headerFix.Position = UDim2.new(0, 0, 1, -10)
+headerFix.BackgroundColor3 = UI_HeaderBg
+headerFix.BorderSizePixel = 0
+headerFix.Parent = header
+
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -20, 1, 0)
+title.Size = UDim2.new(0, 180, 1, 0)
 title.Position = UDim2.new(0, 16, 0, 0)
 title.BackgroundTransparency = 1
 title.Text = "GAB'S PANEL"
 title.TextColor3 = UI_Accent
 title.Font = Enum.Font.GothamBold
-title.TextSize = 16
+title.TextSize = 15
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = header
 
-local versionTag = Instance.new("TextLabel")
-versionTag.Size = UDim2.new(0, 50, 0, 18)
-versionTag.Position = UDim2.new(1, -66, 0.5, -9)
-versionTag.BackgroundColor3 = Color3.fromRGB(0, 50, 80)
-versionTag.Text = "v2.0"
-versionTag.TextColor3 = UI_Accent
-versionTag.Font = Enum.Font.GothamBold
-versionTag.TextSize = 10
-versionTag.Parent = header
+local statusIndicator = Instance.new("Frame")
+statusIndicator.Size = UDim2.new(0, 8, 0, 8)
+statusIndicator.Position = UDim2.new(1, -78, 0.5, -4)
+statusIndicator.BackgroundColor3 = Color3.fromRGB(0, 255, 140)
+statusIndicator.Parent = header
 
-local tagCorner = Instance.new("UICorner")
-tagCorner.CornerRadius = UDim.new(0, 6)
-tagCorner.Parent = versionTag
+local statusCorner = Instance.new("UICorner")
+statusCorner.CornerRadius = UDim.new(1, 0)
+statusCorner.Parent = statusIndicator
 
-local divider = Instance.new("Frame")
-divider.Size = UDim2.new(1, -32, 0, 1)
-divider.Position = UDim2.new(0, 16, 0, 48)
-divider.BackgroundColor3 = Color3.fromRGB(30, 42, 62)
-divider.BorderSizePixel = 0
-divider.Parent = mainFrame
+local statusText = Instance.new("TextLabel")
+statusText.Size = UDim2.new(0, 60, 1, 0)
+statusText.Position = UDim2.new(1, -66, 0, 0)
+statusText.BackgroundTransparency = 1
+statusText.Text = "ACTIVE"
+statusText.TextColor3 = UI_TextSecondary
+statusText.Font = Enum.Font.GothamBold
+statusText.TextSize = 10
+statusText.TextXAlignment = Enum.TextXAlignment.Left
+statusText.Parent = header
 
-local container = Instance.new("Frame")
-container.Size = UDim2.new(1, -24, 1, -64)
-container.Position = UDim2.new(0, 12, 0, 56)
-container.BackgroundTransparency = 1
-container.Parent = mainFrame
+local headerDivider = Instance.new("Frame")
+headerDivider.Size = UDim2.new(1, 0, 0, 1)
+headerDivider.Position = UDim2.new(0, 0, 1, -1)
+headerDivider.BackgroundColor3 = UI_CardBorder
+headerDivider.BorderSizePixel = 0
+headerDivider.Parent = header
 
-local layout = Instance.new("UIListLayout")
-layout.Padding = UDim.new(0, 8)
-layout.SortOrder = Enum.SortOrder.LayoutOrder
-layout.Parent = container
+-- Dual Column Content Container
+local leftColumn = Instance.new("Frame")
+leftColumn.Size = UDim2.new(0.5, -16, 1, -54)
+leftColumn.Position = UDim2.new(0, 12, 0, 48)
+leftColumn.BackgroundTransparency = 1
+leftColumn.Parent = mainFrame
+
+local leftLayout = Instance.new("UIListLayout")
+leftLayout.Padding = UDim.new(0, 6)
+leftLayout.SortOrder = Enum.SortOrder.LayoutOrder
+leftLayout.Parent = leftColumn
+
+local rightColumn = Instance.new("Frame")
+rightColumn.Size = UDim2.new(0.5, -16, 1, -54)
+rightColumn.Position = UDim2.new(0.5, 4, 0, 48)
+rightColumn.BackgroundTransparency = 1
+rightColumn.Parent = mainFrame
+
+local rightLayout = Instance.new("UIListLayout")
+rightLayout.Padding = UDim.new(0, 6)
+rightLayout.SortOrder = Enum.SortOrder.LayoutOrder
+rightLayout.Parent = rightColumn
 
 toggleBtn.MouseButton1Click:Connect(function()
 	mainFrame.Visible = not mainFrame.Visible
 end)
 
 --------------------------------------------------------------------------------
--- UI COMPONENTS (SMOOTH ANIMATED TOGGLES & SLIDERS)
+-- UI COMPONENTS (LANDSCAPE DESIGN)
 --------------------------------------------------------------------------------
 
-local function createToggle(text, defaultState, callback)
+local function createToggle(text, defaultState, parentColumn, callback)
 	local card = Instance.new("Frame")
-	card.Size = UDim2.new(1, 0, 0, 38)
+	card.Size = UDim2.new(1, 0, 0, 34)
 	card.BackgroundColor3 = UI_CardColor
-	card.Parent = container
+	card.Parent = parentColumn
 
 	local cardCorner = Instance.new("UICorner")
-	cardCorner.CornerRadius = UDim.new(0, 10)
+	cardCorner.CornerRadius = UDim.new(0, 8)
 	cardCorner.Parent = card
 
+	local cardStroke = Instance.new("UIStroke")
+	cardStroke.Color = UI_CardBorder
+	cardStroke.Thickness = 1
+	cardStroke.Parent = card
+
 	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(1, -60, 1, 0)
-	label.Position = UDim2.new(0, 12, 0, 0)
+	label.Size = UDim2.new(1, -50, 1, 0)
+	label.Position = UDim2.new(0, 10, 0, 0)
 	label.BackgroundTransparency = 1
 	label.Text = text
 	label.TextColor3 = UI_TextPrimary
 	label.Font = Enum.Font.GothamSemibold
-	label.TextSize = 12
+	label.TextSize = 11
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	label.Parent = card
 
 	local switchBg = Instance.new("TextButton")
-	switchBg.Size = UDim2.new(0, 38, 0, 20)
-	switchBg.Position = UDim2.new(1, -48, 0.5, -10)
+	switchBg.Size = UDim2.new(0, 32, 0, 16)
+	switchBg.Position = UDim2.new(1, -40, 0.5, -8)
 	switchBg.BackgroundColor3 = defaultState and UI_Accent or UI_ToggleOff
 	switchBg.Text = ""
 	switchBg.AutoButtonColor = false
@@ -178,8 +216,8 @@ local function createToggle(text, defaultState, callback)
 	switchCorner.Parent = switchBg
 
 	local switchDot = Instance.new("Frame")
-	switchDot.Size = UDim2.new(0, 14, 0, 14)
-	switchDot.Position = defaultState and UDim2.new(1, -17, 0.5, -7) or UDim2.new(0, 3, 0.5, -7)
+	switchDot.Size = UDim2.new(0, 12, 0, 12)
+	switchDot.Position = defaultState and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)
 	switchDot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	switchDot.Parent = switchBg
 
@@ -191,49 +229,56 @@ local function createToggle(text, defaultState, callback)
 	switchBg.MouseButton1Click:Connect(function()
 		state = not state
 		local targetBg = state and UI_Accent or UI_ToggleOff
-		local targetDotPos = state and UDim2.new(1, -17, 0.5, -7) or UDim2.new(0, 3, 0.5, -7)
+		local targetDotPos = state and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)
+		local targetBorder = state and UI_Accent or UI_CardBorder
 
 		TweenService:Create(switchBg, TweenInfo.new(0.2), {BackgroundColor3 = targetBg}):Play()
 		TweenService:Create(switchDot, TweenInfo.new(0.2), {Position = targetDotPos}):Play()
+		TweenService:Create(cardStroke, TweenInfo.new(0.2), {Color = targetBorder}):Play()
 		callback(state)
 	end)
 end
 
-local function createSlider(titleText, minVal, maxVal, defaultVal, callback)
+local function createSlider(titleText, minVal, maxVal, defaultVal, parentColumn, callback)
 	local card = Instance.new("Frame")
-	card.Size = UDim2.new(1, 0, 0, 46)
+	card.Size = UDim2.new(1, 0, 0, 42)
 	card.BackgroundColor3 = UI_CardColor
-	card.Parent = container
+	card.Parent = parentColumn
 
 	local cardCorner = Instance.new("UICorner")
-	cardCorner.CornerRadius = UDim.new(0, 10)
+	cardCorner.CornerRadius = UDim.new(0, 8)
 	cardCorner.Parent = card
 
+	local cardStroke = Instance.new("UIStroke")
+	cardStroke.Color = UI_CardBorder
+	cardStroke.Thickness = 1
+	cardStroke.Parent = card
+
 	local sliderTitle = Instance.new("TextLabel")
-	sliderTitle.Size = UDim2.new(1, -24, 0, 18)
-	sliderTitle.Position = UDim2.new(0, 12, 0, 4)
+	sliderTitle.Size = UDim2.new(1, -20, 0, 16)
+	sliderTitle.Position = UDim2.new(0, 10, 0, 4)
 	sliderTitle.BackgroundTransparency = 1
-	sliderTitle.Text = titleText .. "  "
+	sliderTitle.Text = titleText
 	sliderTitle.TextColor3 = UI_TextSecondary
 	sliderTitle.Font = Enum.Font.GothamSemibold
-	sliderTitle.TextSize = 11
+	sliderTitle.TextSize = 10
 	sliderTitle.TextXAlignment = Enum.TextXAlignment.Left
 	sliderTitle.Parent = card
 
 	local valLabel = Instance.new("TextLabel")
-	valLabel.Size = UDim2.new(0, 50, 0, 18)
-	valLabel.Position = UDim2.new(1, -62, 0, 4)
+	valLabel.Size = UDim2.new(0, 50, 0, 16)
+	valLabel.Position = UDim2.new(1, -60, 0, 4)
 	valLabel.BackgroundTransparency = 1
 	valLabel.Text = tostring(defaultVal)
 	valLabel.TextColor3 = UI_Accent
 	valLabel.Font = Enum.Font.GothamBold
-	valLabel.TextSize = 11
+	valLabel.TextSize = 10
 	valLabel.TextXAlignment = Enum.TextXAlignment.Right
 	valLabel.Parent = card
 
 	local sliderBtn = Instance.new("TextButton")
-	sliderBtn.Size = UDim2.new(1, -24, 0, 8)
-	sliderBtn.Position = UDim2.new(0, 12, 0, 28)
+	sliderBtn.Size = UDim2.new(1, -20, 0, 6)
+	sliderBtn.Position = UDim2.new(0, 10, 0, 26)
 	sliderBtn.BackgroundColor3 = UI_ToggleOff
 	sliderBtn.Text = ""
 	sliderBtn.AutoButtonColor = false
@@ -307,7 +352,7 @@ FOVStroke.Thickness = 1.5
 FOVStroke.Parent = FOVFrame
 
 --------------------------------------------------------------------------------
--- CHECKS & HELPER FUNCTIONS
+-- HELPER FUNCTIONS
 --------------------------------------------------------------------------------
 
 local function isPlayerAlive(player)
@@ -400,129 +445,4 @@ local function getClosestTarget()
 				local targetVector = Vector2.new(screenPos.X, screenPos.Y)
 				local dist = (targetVector - centerPos).Magnitude
 
-				if dist <= shortestDistance then
-					shortestDistance = dist
-					closestPlayer = player
-				end
-			end
-		end
-	end
-	return closestPlayer
-end
-
---------------------------------------------------------------------------------
--- REGISTER CONTROLS
---------------------------------------------------------------------------------
-
-createToggle("Sticky Aim", false, function(state)
-	StickyAim_Enabled = state
-	FOVFrame.Visible = state
-	if not state then LockTarget = nil end
-end)
-
-createToggle("Wall Check", false, function(state)
-	WallCheck_Enabled = state
-	if state and LockTarget and LockTarget.Character and LockTarget.Character:FindFirstChild("Head") then
-		if not isTargetVisible(LockTarget.Character.Head) then
-			LockTarget = nil
-		end
-	end
-end)
-
-createToggle("Ignore Dead", true, function(state)
-	IgnoreDead_Enabled = state
-end)
-
-createToggle("Team Check", false, function(state)
-	TeamCheck_Enabled = state
-end)
-
-createToggle("Visual ESP", false, function(state)
-	VisualESP_Enabled = state
-end)
-
-createSlider("FOV Radius", 40, 300, FOV_Radius, function(val)
-	FOV_Radius = val
-end)
-
-createSlider("Aim Smoothness", 1, 100, math.floor(Aim_Smoothness * 100), function(val, rel)
-	Aim_Smoothness = math.clamp(rel, 0.05, 1.0)
-end)
-
---------------------------------------------------------------------------------
--- MAIN EXECUTION LOOP
---------------------------------------------------------------------------------
-
-RunService.RenderStepped:Connect(function(deltaTime)
-	-- Sync FOV Ring Position
-	local centerScreen = getCenterScreenPos()
-	FOVFrame.Size = UDim2.new(0, FOV_Radius * 2, 0, FOV_Radius * 2)
-	FOVFrame.Position = UDim2.new(0, centerScreen.X, 0, centerScreen.Y)
-
-	-- Sticky Aim Execution
-	if StickyAim_Enabled then
-		if not LockTarget or not LockTarget.Character or not LockTarget.Character:FindFirstChild("Head") 
-		   or (IgnoreDead_Enabled and not isPlayerAlive(LockTarget)) 
-		   or (WallCheck_Enabled and not isTargetVisible(LockTarget.Character.Head)) then
-			LockTarget = getClosestTarget()
-		end
-
-		if LockTarget and LockTarget.Character and LockTarget.Character:FindFirstChild("Head") then
-			local headPos = LockTarget.Character.Head.Position
-			local screenPos, onScreen = Camera:WorldToViewportPoint(headPos)
-
-			if onScreen and screenPos.Z > 0 then
-				local distFromCenter = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)).Magnitude
-
-				if distFromCenter <= FOV_Radius then
-					local currentCFrame = Camera.CFrame
-					local targetCFrame = CFrame.lookAt(currentCFrame.Position, headPos)
-					local lerpAlpha = math.clamp(deltaTime * (Aim_Smoothness * 20), 0, 1)
-					
-					Camera.CFrame = currentCFrame:Lerp(targetCFrame, lerpAlpha)
-					FOVStroke.Color = Color3.fromRGB(0, 255, 150)
-				else
-					LockTarget = nil
-					FOVStroke.Color = UI_Accent
-				end
-			else
-				LockTarget = nil
-				FOVStroke.Color = UI_Accent
-			end
-		else
-			FOVStroke.Color = UI_Accent
-		end
-	end
-
-	-- ESP Highlights
-	for _, player in ipairs(Players:GetPlayers()) do
-		if player ~= LocalPlayer then
-			if VisualESP_Enabled and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-				local isSameTeam = TeamCheck_Enabled and player.Team and player.Team == LocalPlayer.Team
-				local alive = isPlayerAlive(player)
-
-				if not isSameTeam and (not IgnoreDead_Enabled or alive) then
-					local highlight = player.Character:FindFirstChild("ESPHighlight")
-					if not highlight then
-						highlight = Instance.new("Highlight")
-						highlight.Name = "ESPHighlight"
-						highlight.FillTransparency = 0.5
-						highlight.OutlineTransparency = 0
-						highlight.Parent = player.Character
-					end
-
-					highlight.Enabled = true
-					highlight.FillColor = alive and Color3.fromRGB(0, 225, 255) or Color3.fromRGB(100, 115, 130)
-				else
-					if player.Character:FindFirstChild("ESPHighlight") then
-						player.Character.ESPHighlight.Enabled = false
-					end
-				end
-			else
-				if player.Character and player.Character:FindFirstChild("ESPHighlight") then
-					player.Character.ESPHighlight.Enabled = false
-				end
-			end
-		end
-	end
-end)
+				if dist <= shortest
